@@ -1,6 +1,6 @@
 import { readPuzzleInput } from "../util.ts";
 
-const puzzle = readPuzzleInput("01");
+const puzzle = readPuzzleInput("00");
 const example = [];
 
 const solve1 = (input: string[]): any => {
