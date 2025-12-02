@@ -21,38 +21,37 @@ const solve1 = (input: string[]): number => {
   const ranges = parse(input[0] || "");
   let sum = 0;
   for (let range of ranges) {
-    for (let id = range.start; id <= range.end; id++) {
-      const i = String(id);
-      const a = i.substring(0, i.length / 2);
-      const b = i.substring(i.length / 2);
-      if (a === b) {
-        sum += id;
+    for (let idValue = range.start; idValue <= range.end; idValue++) {
+      const id = String(idValue);
+      const firstHalf = id.substring(0, id.length / 2);
+      const secondHalf = id.substring(id.length / 2);
+      if (firstHalf === secondHalf) {
+        sum += idValue;
       }
     }
   }
   return sum;
 };
 
-const solve2 = (input: string[]): any => {
+const solve2 = (input: string[]): number => {
   const ranges = parse(input[0] || "");
-  const invalid = new Set<number>();
+  let sum = 0;
   for (let range of ranges) {
-    for (let id = range.start; id <= range.end; id++) {
-      const i = String(id);
-      for (let j = 1; j <= i.length / 2; j++) {
-        const pattern = i.substring(0, j);
-        const test = i.replaceAll(pattern, "");
+    for (let idValue = range.start; idValue <= range.end; idValue++) {
+      const id = String(idValue);
+      for (let endIdx = id.length / 2; endIdx > 0; endIdx--) {
+        const pattern = id.substring(0, endIdx);
+        const test = id.replaceAll(pattern, "");
         if (test.length === 0) {
-          invalid.add(id);
+          sum += idValue;
+          break;
         }
       }
     }
   }
-  return invalid.values().reduce((a, b) => a + b);
+  return sum;
 };
-const ex1 = solve1(example);
-assert(ex1 === 1227775554, `was ${ex1}`);
+assert(solve1(example) === 1227775554);
 console.log(`Part 1 : ${solve1(puzzle)}`);
-const ex2 = solve2(example);
-assert(ex2 === 4174379265, `was ${ex2}`);
+assert(solve2(example) === 4174379265);
 console.log(`Part 2 : ${solve2(puzzle)}`);
