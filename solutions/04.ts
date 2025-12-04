@@ -50,19 +50,37 @@ const countNeighbours = (map: Map<string, Coord>, key: string): number => {
   return count;
 };
 
+const isAccessable = (map: Map<string, Coord>, key: string): boolean => {
+  return countNeighbours(map, key) < 4;
+};
+
 const solve1 = (input: string[]): number => {
   const coordsOfPaperRolls = parseInput(input);
   return coordsOfPaperRolls
     .keys()
-    .filter((key) => countNeighbours(coordsOfPaperRolls, key) < 4)
+    .filter((key) => isAccessable(coordsOfPaperRolls, key))
     .toArray().length;
 };
 
 const solve2 = (input: string[]): number => {
-  return 0;
+  let count = 0;
+  let current = parseInput(input);
+  let temp = new Map(current);
+  while (true) {
+    const oldCount = count;
+    for (let key of current.keys()) {
+      if (isAccessable(current, key)) {
+        temp.delete(key);
+        count++;
+      }
+    }
+    if (oldCount === count) break;
+    current = new Map(temp);
+  }
+  return count;
 };
 
 assert(solve1(example) === 13);
 console.log(`Part 1 : ${solve1(puzzle)}`);
-assert(solve2(example) === 0);
+assert(solve2(example) === 43);
 console.log(`Part 2 : ${solve2(puzzle)}`);
