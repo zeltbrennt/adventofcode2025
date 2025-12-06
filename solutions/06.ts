@@ -15,15 +15,43 @@ type Homework = {
 };
 
 const parse = (input: string[]): Homework => {
+  const inputCopy = [...input];
   let operators = [""];
   while (operators[0] === "") {
     // somhow example and input have different last lines
-    operators = input.pop()!.trim().split(/\s+/);
+    operators = inputCopy.pop()!.trim().split(/\s+/);
   }
   const homework: Homework = { numbers: [], operators: operators };
-  for (let line of input) {
+  for (let line of inputCopy) {
     const numbers = line.trim().split(/\s+/).map(Number);
     homework.numbers.push(numbers);
+  }
+  return homework;
+};
+
+const parseCorrectly = (input: string[]): Homework => {
+  const inputCopy = [...input];
+  let operators = [""];
+  while (operators[0] === "") {
+    // somhow example and input have different last lines
+    operators = inputCopy.pop()!.trim().split(/\s+/);
+  }
+  const homework: Homework = { numbers: [], operators: operators.reverse() };
+  let temp = "";
+  let nextTask: number[] = [];
+  let taskNr = 0;
+  homework.numbers.push(nextTask);
+  for (let x = inputCopy[0]!.length - 1; x >= 0; x--) {
+    for (let y = inputCopy.length - 1; y >= 0; y--) {
+      temp = inputCopy[y]![x]! + temp;
+    }
+    if (temp.trim() === "") {
+      homework.numbers.push([]);
+      taskNr++;
+    } else {
+      homework.numbers[taskNr]?.push(Number(temp));
+      temp = "";
+    }
   }
   return homework;
 };
@@ -41,10 +69,17 @@ const solve1 = (input: string[]): number => {
 };
 
 const solve2 = (input: string[]): number => {
-  return 0;
+  const homework = parseCorrectly(input);
+  return homework.numbers
+    .map((numbers, i) => {
+      return numbers.reduce((a, b) =>
+        homework.operators[i] === "*" ? a * b : a + b,
+      );
+    })
+    .reduce((a, b) => a + b);
 };
 
 assert(solve1(example) === 4277556);
 console.log(`Part 1 : ${solve1(puzzle)}`);
-assert(solve2(example) === 0);
+assert(solve2(example) === 3263827);
 console.log(`Part 2 : ${solve2(puzzle)}`);
