@@ -55,6 +55,27 @@ const tachyonBeamSplits = (
   }
   return split;
 };
+
+const countPaths = (
+  grid: string[],
+  x: number,
+  y: number,
+  cache: Map<string, number>,
+): number => {
+  if (!grid[y + 1]) return 1; // found bottom
+  if (!grid[y]![x]) return 0; // out of bounds
+  const cacheHit = cache.get(`${x},${y}`);
+  if (cacheHit) return cacheHit; // cached result
+  if (grid[y]![x] === "^") {
+    const count =
+      countPaths(grid, x - 1, y + 1, cache) +
+      countPaths(grid, x + 1, y + 1, cache);
+    cache.set(`${x},${y}`, count);
+    return count;
+  }
+  return countPaths(grid, x, y + 1, cache);
+};
+
 const solve1 = (input: string[]): number => {
   const grid = parseToGrid(input);
   let splits = 0;
@@ -68,10 +89,12 @@ const solve1 = (input: string[]): number => {
 };
 
 const solve2 = (input: string[]): number => {
-  return 0;
+  const x = input[0]!.indexOf("S");
+  let count = countPaths(input, x, 0, new Map());
+  return count;
 };
 
 assert(solve1(example) === 21);
 console.log(`Part 1 : ${solve1(puzzle)}`);
-assert(solve2(example) === 0);
+assert(solve2(example) === 40);
 console.log(`Part 2 : ${solve2(puzzle)}`);
