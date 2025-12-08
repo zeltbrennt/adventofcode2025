@@ -66,21 +66,25 @@ const createDistanceTable = (boxes: JunctionBox[]): Map<number, Pair> => {
   return distanceTable;
 };
 
-const toString = (box: JunctionBox): string => {
-  return `[${box.x},${box.y},${box.z}]`;
+type ConnectOptions = {
+  distanceTable: Map<number, Pair>;
+  circuits: Map<number, JunctionBox[]>;
+  maxConnections: number;
+  maxCircuitSize?: number;
 };
 
-const makeConnections = (
-  distanceTable: Map<number, Pair>,
-  circuits: Map<number, JunctionBox[]>,
-  max: number,
-) => {
+const makeConnections = ({
+  distanceTable,
+  circuits,
+  maxConnections,
+  maxCircuitSize,
+}: ConnectOptions): number => {
   let connections = 0;
   let circuitID = 1;
-  for (let [dist, pair] of [...distanceTable.entries()].sort(
+  for (let [_, pair] of [...distanceTable.entries()].sort(
     (a, b) => a[0] - b[0],
   )) {
-    if (connections === max) break;
+    if (connections === maxConnections) break;
     if (!(pair.left.circuitId || pair.right.circuitId)) {
       // new circuit
       pair.left.circuitId = circuitID;
@@ -91,10 +95,16 @@ const makeConnections = (
       // connect to right circuit
       pair.left.circuitId = pair.right.circuitId;
       circuits.get(pair.right.circuitId!)?.push(pair.left);
+      if (circuits.get(pair.left.circuitId!)?.length === maxCircuitSize) {
+        return pair.left.x * pair.right.x;
+      }
     } else if (!pair.right.circuitId) {
       // connect to right circuit
       pair.right.circuitId = pair.left.circuitId;
       circuits.get(pair.left.circuitId)?.push(pair.right);
+      if (circuits.get(pair.left.circuitId!)?.length === maxCircuitSize) {
+        return pair.left.x * pair.right.x;
+      }
     } else if (pair.left.circuitId !== pair.right.circuitId) {
       // merge circuits to the left
       const merged = pair.right.circuitId;
@@ -104,16 +114,24 @@ const makeConnections = (
         circuits.get(pair.left.circuitId!)?.push(box);
       });
       circuits.delete(merged);
+      if (circuits.get(pair.left.circuitId!)?.length === maxCircuitSize) {
+        return pair.left.x * pair.right.x;
+      }
     }
     connections++;
   }
+  return 0;
 };
 
 const solve1 = (input: string[], pairs: number): number => {
   const boxes = parse(input);
   const distanceTable = createDistanceTable(boxes);
   const circuits = new Map<number, JunctionBox[]>();
-  makeConnections(distanceTable, circuits, pairs);
+  makeConnections({
+    distanceTable: distanceTable,
+    circuits: circuits,
+    maxConnections: pairs,
+  });
   return circuits
     .values()
     .map((c) => c.length)
@@ -124,10 +142,18 @@ const solve1 = (input: string[], pairs: number): number => {
 };
 
 const solve2 = (input: string[]): number => {
-  return 0;
+  const boxes = parse(input);
+  const distanceTable = createDistanceTable(boxes);
+  const circuits = new Map<number, JunctionBox[]>();
+  return makeConnections({
+    distanceTable: distanceTable,
+    circuits: circuits,
+    maxConnections: distanceTable.size,
+    maxCircuitSize: boxes.length,
+  });
 };
 
 assert(solve1(example, 10) === 40);
 console.log(`Part 1 : ${solve1(puzzle, 1000)}`);
-assert(solve2(example) === 0);
+assert(solve2(example) === 25272);
 console.log(`Part 2 : ${solve2(puzzle)}`);
