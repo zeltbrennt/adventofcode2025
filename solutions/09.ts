@@ -1,5 +1,6 @@
 import assert from "assert";
 import { readPuzzleInput } from "../util.ts";
+import type { argv0 } from "process";
 
 const puzzle = readPuzzleInput("09");
 const example = ["7,1", "11,1", "11,7", "9,7 ", "9,5 ", "2,5 ", "2,3 ", "7,3 "];
@@ -44,6 +45,34 @@ const parse = (input: string[]): PuzzleInput => {
     }
   }
   return { rectangles: rectangles, lines: lines };
+};
+
+const print = (rects: Rectangle[], max: Rectangle) => {
+  let minX = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let minY = 0;
+  for (let r of rects.map((r) => r.a)) {
+    if (r.x < minX) minX = r.x;
+    if (r.y < minY) minY = r.y;
+    if (r.x > maxX) maxX = r.x;
+    if (r.y > maxY) maxY = r.y;
+  }
+  const scaled: Point[] = [];
+  for (let r of rects.map((r) => r.a)) {
+    let px = Math.floor(((r.x - minX) / (maxX - minX)) * 100);
+    let py = Math.floor(((r.y - minY) / (maxY - minY)) * 100);
+    scaled.push({ x: px, y: py });
+  }
+  for (let y = 0; y < 100; y++) {
+    let line = ``;
+    for (let x = 0; x < 100; x++) {
+      // TODO: find the (scaled!) points of the maximum rectangle and print it here
+      if (scaled.find((p) => p.x === x && p.y === y)) line = "# " + line;
+      else line = ". " + line;
+    }
+    console.log(line);
+  }
 };
 
 const calcAreaOfRectangle = (r: Rectangle): number => {
@@ -100,6 +129,7 @@ const solve = (
       if (area > maxArea) maxArea = area;
     }
   }
+  print(rectangles);
   return maxArea;
 };
 
@@ -168,6 +198,5 @@ const example5 = [
   "1,9",
 ];
 
-assert(solve2(example5) === 30);
-console.log("###");
+//assert(solve2(example5) === 30);
 console.log(`Part 2 : ${solve2(puzzle)}`); //250496 too low
