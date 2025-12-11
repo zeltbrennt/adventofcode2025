@@ -9,19 +9,22 @@ const example = [
 ];
 
 type PuzzleInput = {
-  target: number[];
+  target: string;
   switchtes: number[][];
   joltage: number[];
+};
+
+type Node<T, V> = {
+  depth: number;
+  state: T;
+  visited: V[];
 };
 
 function parse(machine: string): PuzzleInput {
   const targetPattern = /(?<=\[)[.#]+/;
   const switchPattern = /(?<=\]\s).+(?=\s{)/;
   const joltagePattern = /(?<={).+(?=})/;
-  const target = machine
-    .match(targetPattern)![0]
-    .split("")
-    .map((s) => (s === "#" ? 1 : 0));
+  const target = machine.match(targetPattern)![0];
   const switchtes = machine
     .match(switchPattern)![0]
     .replaceAll(/[\(\)]/g, "")
@@ -33,12 +36,42 @@ function parse(machine: string): PuzzleInput {
 
 function findShortestSequence(machine: string): number {
   const { target, switchtes } = parse(machine);
-  // TODO: bfs through the switches
-  return 0;
+  const queue: Node<string, number[]>[] = [];
+  queue.push({
+    depth: 0,
+    state: ".".repeat(target.length),
+    visited: [],
+  });
+  let current: Node<string, number[]>;
+  while (queue.length > 0) {
+    current = queue.shift()!;
+    if (current!.state === target) break;
+    for (let button of switchtes) {
+      if (current.visited.includes(button)) continue;
+      let nextState = current!.state // TODO: make this with bit-operations instead?
+        .split("")
+        .map((s, i) => (button.includes(i) ? (s === "." ? "#" : ".") : s))
+        .join("");
+      //console.log(
+      //  `target: ${target}, depth: ${current.depth + 1} transfered: ${current.state} after (${button}) to ${nextState}`,
+      //);
+      queue.push({
+        depth: current.depth + 1,
+        state: nextState,
+        visited: [button, ...current.visited],
+      });
+    }
+  }
+  return current!.depth;
 }
 
 function solve1(input: string[]): number {
-  return input.map((s) => findShortestSequence(s)).reduce((a, b) => a + b, 0);
+  //input.forEach((i) => console.log(findShortestSequence(i)));
+  //return 0;
+  return input
+    .filter((s) => s !== "")
+    .map((s) => findShortestSequence(s))
+    .reduce((a, b) => a + b, 0);
 }
 
 function solve2(input: string[]): number {
